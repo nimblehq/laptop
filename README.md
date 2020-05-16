@@ -50,6 +50,7 @@ bash mac 2>&1 | tee ~/laptop.log
 * [Google Chrome] as the default browser
 * [Slack] for general team communication
 * [Keybase] to have encrypted team communication
+* [GitHub CLI] for interacting with the Github
 
 [Bundler]: http://bundler.io/
 [Foreman]: https://github.com/ddollar/foreman
@@ -70,6 +71,7 @@ bash mac 2>&1 | tee ~/laptop.log
 [Google Chrome]: https://www.google.com/chrome/
 [Slack]: https://www.slack.com/
 [Keybase]: https://keybase.io/
+[GitHub CLI]: https://cli.github.com/
 
 It should take less than 15 minutes to install (depending on your machine and internet speed).
 

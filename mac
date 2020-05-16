@@ -131,6 +131,7 @@ brew "heroku/brew/heroku"
 
 # GitHub
 brew "hub"
+brew github/gh/gh
 
 # Image manipulation
 brew "imagemagick"
