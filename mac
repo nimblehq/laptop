@@ -77,6 +77,8 @@ config_zsh() {
       git clone https://github.com/zsh-users/zsh-completions ~/.oh-my-zsh/custom/plugins/zsh-completions
     fi
 
+    zsh_config_nvm
+
     fancy_echo "Configured Zsh"
   fi
 }
@@ -85,15 +87,17 @@ install_nvm() {
   fancy_echo "Installing NVM"
   curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
 
-  if ! command -v nvm; then
+  fancy_echo "Installed NVM"
+}
+
+zsh_config_nvm() {
+    if ! command -v nvm; then
     fancy_echo "Adding nvm to zshrc automatically..."
     append_to_zshrc '# nvm path
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion'
   fi
-
-  fancy_echo "Installed NVM"
 }
 
 gem_install_or_update() {
