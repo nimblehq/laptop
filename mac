@@ -74,7 +74,4 @@ install() {
 # Run
 install
 
-# Zsh extensions
-config_zsh
-
 fancy_echo "Installation successful"
