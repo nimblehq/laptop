@@ -18,212 +18,23 @@ fancy_echo() {
 }
 
 pre_setup() {
-  if [ ! -d "$HOME/.bin/" ]; then
-    mkdir "$HOME/.bin"
-  fi
-
-  if [ ! -f "$HOME/.zshrc" ]; then
-    touch "$HOME/.zshrc"
-  fi
-
   if [ ! -f "$HOME/.Brewfile" ]; then
     touch "$HOME/.Brewfile"
   fi
-
-  # shellcheck disable=SC2016
-  append_to_zshrc 'export PATH="$HOME/.bin:$PATH"'
 }
 
-append_to_zshrc() {
-  local text="$1" zshrc
-  local skip_new_line="${2:-0}"
-
-  if [ -w "$HOME/.zshrc.local" ]; then
-    zshrc="$HOME/.zshrc.local"
-  else
-    zshrc="$HOME/.zshrc"
-  fi
-
-  if ! grep -Fqs "$text" "$zshrc"; then
-    if [ "$skip_new_line" -eq 1 ]; then
-      printf "%s\n" "$text" >> "$zshrc"
-    else
-      printf "\n%s\n" "$text" >> "$zshrc"
-    fi
-  fi
-}
-
-config_zsh() {
-  read -r -p "Do you want to install Zsh's extensions? [Y|n] " response
-
-  if [[ ! $response =~ (n|no|N) ]];then
-    sudo chsh -s $(which zsh)
-
-    append_to_zshrc 'ZSH_DISABLE_COMPFIX=true'
-
-    fancy_echo "Installing Oh my Zsh"
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-
-    if [ ! -d ~/.zsh-defer ]; then
-      git clone https://github.com/romkatv/zsh-defer.git ~/.zsh-defer
-    fi
-    if [ ! -d ~/.zsh/zsh-autosuggestions ]; then
-      git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
-    fi
-    if [ ! -d ~/.zsh/zsh-syntax-highlighting ]; then
-      git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.zsh/zsh-syntax-highlighting
-    fi
-    if [ ! -d ~/.oh-my-zsh/custom/plugins/zsh-completions ]; then
-      git clone https://github.com/zsh-users/zsh-completions ~/.oh-my-zsh/custom/plugins/zsh-completions
-    fi
-
-    fancy_echo "Configured Zsh"
-  fi
-}
-
-install_nvm() {
-  fancy_echo "Installing NVM"
-  curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
-
-  if ! command -v nvm; then
-    fancy_echo "Adding nvm to zshrc automatically..."
-    append_to_zshrc '# nvm path
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion'
-  fi
-
-  fancy_echo "Installed NVM"
-}
-
-gem_install_or_update() {
-  if gem list "$1" --installed > /dev/null; then
-    gem update "$@"
-  else
-    gem install "$@"
-  fi
-}
-
-install_rvm() {
-  fancy_echo "Installing RVM"
-
-  curl -sSL https://rvm.io/mpapis.asc | gpg --import -
-  curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -
-
-  echo 409B6B1796C275462A1703113804BB82D39DC0E3:6: | gpg --import-ownertrust
-  echo 7D2BAF1CF37B13E2069D6956105BD0E739499BDB:6: | gpg --import-ownertrust
-
-  curl -L https://get.rvm.io | bash -s stable
-
-  source "$HOME/.rvm/scripts/rvm"
-  rvm use ruby --install --default
-
+install_ruby() {
+  fancy_echo "Installing Ruby"
+  
   gem update --system
-  gem_install_or_update "bundler"
-  number_of_cores=$(sysctl -n hw.ncpu)
-  bundle config --global jobs $((number_of_cores - 1))
-  fancy_echo "Installed RVM"
-}
-
-install_homebrew() {
-  if ! command -v brew >/dev/null; then
-    fancy_echo "Installing Homebrew ..."
-      curl -fsS \
-        'https://raw.githubusercontent.com/Homebrew/install/master/install' | ruby
-
-      append_to_zshrc '# recommended by brew doctor'
-
-      # shellcheck disable=SC2016
-      append_to_zshrc 'export PATH="/usr/local/bin:$PATH"' 1
-
-      export PATH="/usr/local/bin:$PATH"
-  fi
-
-  sudo chown -R $(whoami) $(brew --prefix)/*
-
-  if brew list | grep -Fq brew-cask; then
-    fancy_echo "Uninstalling old Homebrew-Cask ..."
-    brew uninstall --force brew-cask
-  fi
-}
-
-setup_postgres() {
-  pg_ctl -D /usr/local/var/postgres start
-  /usr/local/opt/postgres/bin/createuser -s postgres
-  pg_ctl -D /usr/local/var/postgres stop
 }
 
 append_general_dependencies() {
   fancy_echo "Appending general dependencies to Brewfile"
 
   tee "$HOME/.Brewfile" <<-EOF
-    # General
-    tap "thoughtbot/formulae"
-    tap "homebrew/services"
-    tap "universal-ctags/universal-ctags"
-    tap "github/gh"
-
     # mas-cli to install macOS apps
     brew "mas"
-
-    # General apps
-    cask "keybase" unless File.directory?("/Applications/Keybase.app")
-    cask "slack" unless File.directory?("/Applications/Slack.app")
-    cask "google-chrome" unless File.directory?("/Applications/Google Chrome.app")
-    cask "1password" unless File.directory?("/Applications/1Password 7.app")
-    cask "1password-cli"
-    cask "skitch" unless File.directory?("/Applications/Skitch.app")
-    cask "postman" unless File.directory?("/Applications/Postman.app")
-    cask "iterm2" unless File.directory?("/Applications/iTerm.app")
-
-    # Unix
-    brew "universal-ctags", args: ["HEAD"]
-    brew "git"
-    brew "openssl"
-    brew "gpg"
-    brew "zsh"
-
-    # GitHub extensions
-    brew "github/gh/gh"
-    cask "github" unless File.directory?("/Applications/GitHub Desktop.app")
-    brew "git-lfs"
-
-    # Editor
-    cask "visual-studio-code" unless File.directory?("/Applications/Visual Studio Code.app")
-
-    # Programming language prerequisites and package managers
-    brew "libyaml" # should come after openssl
-    brew "coreutils"
-EOF
-}
-
-append_web_dependencies() {
-  fancy_echo "Appending web's dependencies to Brewfile"
-
-  tee -a "$HOME/.Brewfile" <<-EOF
-    # Web
-    tap "heroku/brew"
-    tap "phrase/brewed"
-
-    # Languages
-    brew "go"
-    brew "elixir"
-
-    # Devops
-    cask "docker"
-    brew "heroku"
-    brew "awscli"
-
-    # Image manipulation
-    brew "imagemagick"
-
-    # Databases
-    brew "postgres"
-
-    # Others
-    brew "yarn"
-    brew "phrase"
-    cask "jetbrains-toolbox"
 EOF
 }
 
@@ -231,75 +42,33 @@ append_ios_dependencies() {
   fancy_echo "Appending iOS's dependencies to Brewfile"
 
   tee -a "$HOME/.Brewfile" <<-EOF
-    # iOS
-    brew "cocoapods"
-    cask "figma"
-    cask "proxyman"
-    cask "sourcetree"
     mas "XCode", id: 497799835
 EOF
 }
 
-append_android_dependencies() {
-  fancy_echo "Appending Android's dependencies to Brewfile"
-
-  tee -a "$HOME/.Brewfile" <<-EOF
-    # Android
-    cask "java"
-    cask "android-studio"
-    cask "android-sdk"
-EOF
+ask_for_repo() {
+  read -r -p "What is the Github repo you want to connect to? (team/repo)" repo
+  
+  fancy_echo "Please follow the instruction on the web page."
+  open "https://github.com/$repo/settings/actions/runners/new"
 }
 
-install_dependencies() {
-  fancy_echo "Updating Homebrew formulae ..."
-  brew update --force # https://github.com/Homebrew/brew/issues/1151
-
-  fancy_echo "Installing dependencies"
-  brew bundle --global --verbose --no-upgrade
-
-  install_rvm
-  install_nvm
-  setup_postgres
-
-  fancy_echo "Installed dependencies"
-}
-
-install_laptop_local() {
-  if [ -f "$HOME/.laptop.local" ]; then
-    fancy_echo "Running your customizations from ~/.laptop.local ..."
-    # shellcheck disable=SC1090
-    . "$HOME/.laptop.local"
-  fi
+run_github_actions() {
+  ask_for_repo
 }
 
 install() {
-  read -r -p "Do you want to install Web's dependencies? [y|N] " web_dep
-  read -r -p "Do you want to install iOS's dependencies? [y|N] " ios_dep
-  read -r -p "Do you want to install Android's dependencies? [y|N] " android_dep
-
   pre_setup
-  install_homebrew
 
   append_general_dependencies
 
-  if [[ $web_dep =~ (y|yes|Y) ]];then
-    append_web_dependencies
-  fi
+  append_ios_dependencies
 
-  if [[ $ios_dep =~ (y|yes|Y) ]];then
-    append_ios_dependencies
-  fi
-
-  if [[ $android_dep =~ (y|yes|Y) ]];then
-    append_android_dependencies
-  fi
-
-  install_dependencies
-
-  install_laptop_local
+  install_ruby
 
   brew cleanup
+
+  run_github_actions
 }
 
 # Run
