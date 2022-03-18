@@ -88,12 +88,12 @@ install_nvm() {
   curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
 
   zsh_config_nvm
-  
+
   fancy_echo "Installed NVM"
 }
 
 zsh_config_nvm() {
-    if ! command -v nvm; then
+  if ! command -v nvm; then
     fancy_echo "Adding nvm to zshrc automatically..."
     append_to_zshrc '# nvm path
 export NVM_DIR="$HOME/.nvm"
@@ -170,7 +170,7 @@ append_general_dependencies() {
     tap "github/gh"
 
     # mas-cli to install macOS apps
-    brew "mas"
+    tap "mas-cli/tap"
 
     # General apps
     cask "keybase" unless File.directory?("/Applications/Keybase.app")
@@ -216,7 +216,7 @@ append_web_dependencies() {
     brew "elixir"
 
     # Devops
-    cask "docker"
+    cask "docker" unless File.directory?("/Applications/Docker.app")
     brew "heroku"
     brew "awscli"
 
@@ -229,7 +229,7 @@ append_web_dependencies() {
     # Others
     brew "yarn"
     brew "phrase"
-    cask "jetbrains-toolbox"
+    cask "jetbrains-toolbox" unless File.directory?("/Applications/JetBrains Toolbox.app")
 EOF
 }
 
