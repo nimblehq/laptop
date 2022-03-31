@@ -30,6 +30,10 @@ pre_setup() {
     touch "$HOME/.Brewfile"
   fi
 
+  if IS_APPLE_SILICON && [ ! -f "$HOME/.zprofile" ]; then
+    touch "$HOME/.zprofile"
+  fi
+
   # shellcheck disable=SC2016
   append_to_zshrc 'export PATH="$HOME/.bin:$PATH"'
 }
@@ -50,6 +54,17 @@ append_to_zshrc() {
     else
       printf "\n%s\n" "$text" >> "$zshrc"
     fi
+  fi
+}
+
+config_homebrew() {
+  HOMEBREW_DIR="/usr/local"
+  IS_APPLE_SILICON=false
+
+  # Detect Apple Silicon for assing the Homebrew directory and flag
+  if [[ $(sysctl -n machdep.cpu.brand_string) =~ "Apple" ]]; then
+    HOMEBREW_DIR="/opt/homebrew"
+    IS_APPLE_SILICON=true
   fi
 }
 
@@ -140,12 +155,19 @@ install_homebrew() {
       append_to_zshrc '# recommended by brew doctor'
 
       # shellcheck disable=SC2016
-      append_to_zshrc 'export PATH="/usr/local/bin:$PATH"' 1
+      append_to_zshrc 'export PATH="$HOMEBREW_DIR/bin:$PATH"' 1
 
-      export PATH="/usr/local/bin:$PATH"
+      if IS_APPLE_SILICON; then
+        append_zprofile()
+        eval "$($HOMEBREW_DIR/bin/brew shellenv)"
+      fi
+
+      export PATH="$HOMEBREW_DIR/bin:$PATH"
   fi
 
-  sudo chown -R $(whoami) $(brew --prefix)/*
+  if !IS_APPLE_SILICON; then
+    sudo chown -R $(whoami) $(brew --prefix)/*
+  fi
 
   if brew list | grep -Fq brew-cask; then
     fancy_echo "Uninstalling old Homebrew-Cask ..."
@@ -154,9 +176,9 @@ install_homebrew() {
 }
 
 setup_postgres() {
-  pg_ctl -D /usr/local/var/postgres start
-  /usr/local/opt/postgres/bin/createuser -s postgres
-  pg_ctl -D /usr/local/var/postgres stop
+  pg_ctl -D "$HOMEBREW_DIR/var/postgres" start
+  "$HOMEBREW_DIR/opt/postgres/bin/createuser" -s postgres
+  pg_ctl -D "$HOMEBREW_DIR/var/postgres" stop
 }
 
 append_general_dependencies() {
@@ -257,6 +279,12 @@ append_android_dependencies() {
 EOF
 }
 
+append_zprofile() {
+  tee -a "$HOME/.zprofile" <<-EOF
+    eval "$(/$HOMEBREW_DIR/bin/brew shellenv)"
+EOF
+}
+
 install_dependencies() {
   fancy_echo "Updating Homebrew formulae ..."
   brew update --force # https://github.com/Homebrew/brew/issues/1151
@@ -283,6 +311,8 @@ install() {
   read -r -p "Do you want to install Web's dependencies? [y|N] " web_dep
   read -r -p "Do you want to install iOS's dependencies? [y|N] " ios_dep
   read -r -p "Do you want to install Android's dependencies? [y|N] " android_dep
+
+  config_homebrew
 
   pre_setup
   install_homebrew
