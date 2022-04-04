@@ -30,12 +30,16 @@ pre_setup() {
     touch "$HOME/.Brewfile"
   fi
 
-  if IS_APPLE_SILICON && [ ! -f "$HOME/.zprofile" ]; then
-    touch "$HOME/.zprofile"
-  fi
-
   # shellcheck disable=SC2016
   append_to_zshrc 'export PATH="$HOME/.bin:$PATH"'
+
+  # Determine Homebrew prefix
+  arch="$(uname -m)"
+  if [ "$arch" = "arm64" ]; then
+    HOMEBREW_PREFIX="/opt/homebrew"
+  else
+    HOMEBREW_PREFIX="/usr/local"
+  fi
 }
 
 append_to_zshrc() {
@@ -54,17 +58,6 @@ append_to_zshrc() {
     else
       printf "\n%s\n" "$text" >> "$zshrc"
     fi
-  fi
-}
-
-config_homebrew() {
-  HOMEBREW_DIR="/usr/local"
-  IS_APPLE_SILICON=false
-
-  # Detect Apple Silicon for assing the Homebrew directory and flag
-  if [[ $(sysctl -n machdep.cpu.brand_string) =~ "Apple" ]]; then
-    HOMEBREW_DIR="/opt/homebrew"
-    IS_APPLE_SILICON=true
   fi
 }
 
@@ -150,23 +143,11 @@ install_homebrew() {
   if ! command -v brew >/dev/null; then
     fancy_echo "Installing Homebrew ..."
       /bin/bash -c \
-          "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+        "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-      append_to_zshrc '# recommended by brew doctor'
+      append_to_zshrc "eval \"\$($HOMEBREW_PREFIX/bin/brew shellenv)\""
 
-      # shellcheck disable=SC2016
-      append_to_zshrc 'export PATH="$HOMEBREW_DIR/bin:$PATH"' 1
-
-      if IS_APPLE_SILICON; then
-        append_zprofile()
-        eval "$($HOMEBREW_DIR/bin/brew shellenv)"
-      fi
-
-      export PATH="$HOMEBREW_DIR/bin:$PATH"
-  fi
-
-  if !IS_APPLE_SILICON; then
-    sudo chown -R $(whoami) $(brew --prefix)/*
+      export PATH="$HOMEBREW_PREFIX/bin:$PATH"
   fi
 
   if brew list | grep -Fq brew-cask; then
@@ -176,9 +157,9 @@ install_homebrew() {
 }
 
 setup_postgres() {
-  pg_ctl -D "$HOMEBREW_DIR/var/postgres" start
-  "$HOMEBREW_DIR/opt/postgres/bin/createuser" -s postgres
-  pg_ctl -D "$HOMEBREW_DIR/var/postgres" stop
+  pg_ctl -D "$HOMEBREW_PREFIX/var/postgres" start
+  "$HOMEBREW_PREFIX/opt/postgres/bin/createuser" -s postgres
+  pg_ctl -D "$HOMEBREW_PREFIX/var/postgres" stop
 }
 
 append_general_dependencies() {
@@ -279,12 +260,6 @@ append_android_dependencies() {
 EOF
 }
 
-append_zprofile() {
-  tee -a "$HOME/.zprofile" <<-EOF
-    eval "$(/$HOMEBREW_DIR/bin/brew shellenv)"
-EOF
-}
-
 install_dependencies() {
   fancy_echo "Updating Homebrew formulae ..."
   brew update --force # https://github.com/Homebrew/brew/issues/1151
@@ -311,8 +286,6 @@ install() {
   read -r -p "Do you want to install Web's dependencies? [y|N] " web_dep
   read -r -p "Do you want to install iOS's dependencies? [y|N] " ios_dep
   read -r -p "Do you want to install Android's dependencies? [y|N] " android_dep
-
-  config_homebrew
 
   pre_setup
   install_homebrew
