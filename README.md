@@ -15,7 +15,7 @@ based on what is already installed on the machine.
 We support:
 
 - OS X Big Sur (11.6)
-- OS X Monterey (12.3)
+- OS X Monterey (12.3) both Apple Silicon and Intel
 
 Older versions may work but aren't regularly tested. This script is tested on the most recent and its previous version.
 
@@ -43,7 +43,6 @@ Do you want to install Android's dependencies? [y|N]
 
 - [Ruby] stable for writing general-purpose code
 - [Bundler] for managing Ruby libraries
-- [Keybase] to have encrypted team communication
 - [1Password] the world’s most-loved password manager
 - [Slack] for general team communication
 - [Google Chrome] as the default browser
@@ -66,7 +65,6 @@ Do you want to install Android's dependencies? [y|N]
 
 [ruby]: https://www.ruby-lang.org/en/
 [bundler]: http://bundler.io/
-[keybase]: https://keybase.io/
 [1password]: https://1password.com/
 [slack]: https://www.slack.com/
 [google chrome]: https://www.google.com/chrome/
