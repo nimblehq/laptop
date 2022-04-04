@@ -176,7 +176,6 @@ append_general_dependencies() {
     brew "mas"
 
     # General apps
-    cask "keybase" unless File.directory?("/Applications/Keybase.app")
     cask "slack" unless File.directory?("/Applications/Slack.app")
     cask "google-chrome" unless File.directory?("/Applications/Google Chrome.app")
     cask "1password" unless File.directory?("/Applications/1Password 7.app")
