@@ -61,31 +61,52 @@ append_to_zshrc() {
   fi
 }
 
+prepend_to_zshrc() {
+  local text="$1" zshrc
+
+  if [ -w "$HOME/.zshrc.local" ]; then
+    zshrc="$HOME/.zshrc.local"
+  else
+    zshrc="$HOME/.zshrc"
+  fi
+
+  echo -e "$text\n\n$(cat $zshrc)" > $zshrc
+}
+
 config_zsh() {
   read -r -p "Do you want to install Zsh's extensions? [Y|n] " response
 
   if [[ ! $response =~ (n|no|N) ]];then
     sudo chsh -s $(which zsh)
 
-    append_to_zshrc 'ZSH_DISABLE_COMPFIX=true'
-
     fancy_echo "Installing Oh my Zsh"
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" "" --unattended
 
-    if [ ! -d ~/.zsh-defer ]; then
-      git clone https://github.com/romkatv/zsh-defer.git ~/.zsh-defer
+    if [ ! -d ~/.zsh/zsh-defer ]; then
+      git clone https://github.com/romkatv/zsh-defer.git ~/.zsh/zsh-defer
+      prepend_to_zshrc 'source ~/.zsh/zsh-defer/zsh-defer.plugin.zsh'
     fi
     if [ ! -d ~/.zsh/zsh-autosuggestions ]; then
-      git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
+      git clone https://github.com/zsh-users/zsh-autosuggestions.git ~/.zsh/zsh-autosuggestions
+      prepend_to_zshrc 'source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh'
     fi
     if [ ! -d ~/.zsh/zsh-syntax-highlighting ]; then
       git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.zsh/zsh-syntax-highlighting
+      prepend_to_zshrc 'source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh'
     fi
     if [ ! -d ~/.oh-my-zsh/custom/plugins/zsh-completions ]; then
-      git clone https://github.com/zsh-users/zsh-completions ~/.oh-my-zsh/custom/plugins/zsh-completions
+      git clone https://github.com/zsh-users/zsh-completions.git ~/.oh-my-zsh/custom/plugins/zsh-completions
+      prepend_to_zshrc 'fpath+=~/.oh-my-zsh/custom/plugins/zsh-completions/src'
     fi
 
+    prepend_to_zshrc 'ZSH_DISABLE_COMPFIX=true'
+
+    # shellcheck disable=SC2016
+    append_to_zshrc 'export PATH="$HOME/.bin:$PATH"'
+
+    zsh_config_rvm
     zsh_config_nvm
+    zsh_config_homebrew
 
     fancy_echo "Configured Zsh"
   fi
@@ -139,13 +160,19 @@ install_rvm() {
   fancy_echo "Installed RVM"
 }
 
+zsh_config_rvm() {
+  fancy_echo "Adding rvm to zshrc automatically..."
+  append_to_zshrc '# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
+export PATH="$PATH:$HOME/.rvm/bin"'
+}
+
 install_homebrew() {
   if ! command -v brew >/dev/null; then
     fancy_echo "Installing Homebrew ..."
       /bin/bash -c \
         "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-      append_to_zshrc "eval \"\$($HOMEBREW_PREFIX/bin/brew shellenv)\""
+      zsh_config_homebrew
 
       export PATH="$HOMEBREW_PREFIX/bin:$PATH"
   fi
@@ -154,6 +181,11 @@ install_homebrew() {
     fancy_echo "Uninstalling old Homebrew-Cask ..."
     brew uninstall --force brew-cask
   fi
+}
+
+zsh_config_homebrew() {
+  fancy_echo "Adding brew to zshrc automatically..."
+  append_to_zshrc "eval \"\$($HOMEBREW_PREFIX/bin/brew shellenv)\""
 }
 
 setup_postgres() {
