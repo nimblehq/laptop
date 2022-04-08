@@ -43,6 +43,7 @@ Do you want to install Android's dependencies? [y|N]
 
 - [Ruby] stable for writing general-purpose code
 - [Bundler] for managing Ruby libraries
+- [Keybase] to have encrypted team communication
 - [1Password] the world’s most-loved password manager
 - [Slack] for general team communication
 - [Google Chrome] as the default browser
@@ -65,6 +66,7 @@ Do you want to install Android's dependencies? [y|N]
 
 [ruby]: https://www.ruby-lang.org/en/
 [bundler]: http://bundler.io/
+[keybase]: https://keybase.io/
 [1password]: https://1password.com/
 [slack]: https://www.slack.com/
 [google chrome]: https://www.google.com/chrome/
@@ -134,6 +136,12 @@ Do you want to install Android's dependencies? [y|N]
 [android sdk]: https://developer.android.com/studio/releases/sdk-tools
 
 It should take less than 15 minutes to install (depending on your machine and internet speed).
+
+### M1 incompatible dependecies
+
+- [Keybase] to have encrypted team communication
+
+It will omit all these dependencies above while running the script in the M1 machines.
 
 ## Customize in `~/.laptop.local`
 

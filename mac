@@ -34,8 +34,8 @@ pre_setup() {
   append_to_zshrc 'export PATH="$HOME/.bin:$PATH"'
 
   # Determine Homebrew prefix
-  arch="$(uname -m)"
-  if [ "$arch" = "arm64" ]; then
+  ARCH="$(uname -m)"
+  if [ "$ARCH" = "arm64" ]; then
     HOMEBREW_PREFIX="/opt/homebrew"
   else
     HOMEBREW_PREFIX="/usr/local"
@@ -202,6 +202,19 @@ append_general_dependencies() {
     # Programming language prerequisites and package managers
     brew "libyaml" # should come after openssl
     brew "coreutils"
+EOF
+
+  if [ "$ARCH" != "arm64" ]; then
+    append_general_intel_dependencies
+  fi
+}
+
+append_general_intel_dependencies() {
+  fancy_echo "Appending web's dependencies to Brewfile"
+
+  tee -a "$HOME/.Brewfile" <<-EOF
+    # General apps
+    cask "keybase" unless File.directory?("/Applications/Keybase.app")
 EOF
 }
 
