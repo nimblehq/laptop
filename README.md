@@ -127,7 +127,7 @@ Do you want to install Android's dependencies? [y|N]
 
 ### Android
 
-- [temurin] OpenJDK from the Adoptium
+- [Temurin] OpenJDK from the Adoptium
 - [Android Studio] Android IDE
 - [Android SDK] Software Development Kit for Android
 
