@@ -298,7 +298,7 @@ append_android_dependencies() {
 
   tee -a "$HOME/.Brewfile" <<-EOF
     # Android
-    cask "java"
+    cask "temurin"
     cask "android-studio"
     cask "android-sdk"
 EOF
