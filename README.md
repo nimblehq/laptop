@@ -127,11 +127,11 @@ Do you want to install Android's dependencies? [y|N]
 
 ### Android
 
-- [Java] general-purpose programming language
+- [temurin] OpenJDK from the Adoptium
 - [Android Studio] Android IDE
 - [Android SDK] Software Development Kit for Android
 
-[java]: https://openjdk.java.net/
+[temurin]: https://adoptium.net
 [android studio]: https://developer.android.com/studio/index.html
 [android sdk]: https://developer.android.com/studio/releases/sdk-tools
 
