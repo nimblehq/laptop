@@ -104,30 +104,9 @@ config_zsh() {
     # shellcheck disable=SC2016
     append_to_zshrc 'export PATH="$HOME/.bin:$PATH"'
 
-    zsh_config_rvm
-    zsh_config_nvm
     zsh_config_homebrew
 
     fancy_echo "Configured Zsh"
-  fi
-}
-
-install_nvm() {
-  fancy_echo "Installing NVM"
-  curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
-
-  zsh_config_nvm
-  
-  fancy_echo "Installed NVM"
-}
-
-zsh_config_nvm() {
-    if ! command -v nvm; then
-    fancy_echo "Adding nvm to zshrc automatically..."
-    append_to_zshrc '# nvm path
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion'
   fi
 }
 
@@ -137,33 +116,6 @@ gem_install_or_update() {
   else
     gem install "$@"
   fi
-}
-
-install_rvm() {
-  fancy_echo "Installing RVM"
-
-  curl -sSL https://rvm.io/mpapis.asc | gpg --import -
-  curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -
-
-  echo 409B6B1796C275462A1703113804BB82D39DC0E3:6: | gpg --import-ownertrust
-  echo 7D2BAF1CF37B13E2069D6956105BD0E739499BDB:6: | gpg --import-ownertrust
-
-  curl -L https://get.rvm.io | bash -s stable
-
-  source "$HOME/.rvm/scripts/rvm"
-  rvm use ruby --install --default
-
-  gem update --system
-  gem_install_or_update "bundler"
-  number_of_cores=$(sysctl -n hw.ncpu)
-  bundle config --global jobs $((number_of_cores - 1))
-  fancy_echo "Installed RVM"
-}
-
-zsh_config_rvm() {
-  fancy_echo "Adding rvm to zshrc automatically..."
-  append_to_zshrc '# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-export PATH="$PATH:$HOME/.rvm/bin"'
 }
 
 install_homebrew() {
@@ -186,6 +138,57 @@ install_homebrew() {
 zsh_config_homebrew() {
   fancy_echo "Adding brew to zshrc automatically..."
   append_to_zshrc "eval \"\$($HOMEBREW_PREFIX/bin/brew shellenv)\""
+}
+
+install_asdf() {
+  fancy_echo "Configuring asdf version manager ..."
+  if [ ! -d "$HOME/.asdf" ]; then
+    brew install asdf
+    append_to_zshrc "source $(brew --prefix asdf)/asdf.sh" 1
+  fi
+}
+
+add_or_update_asdf_plugin() {
+  local name="$1"
+  local url="$2"
+
+  if ! asdf plugin-list | grep -Fq "$name"; then
+    asdf plugin-add "$name" "$url"
+  else
+    asdf plugin-update "$name"
+  fi
+}
+
+install_asdf_language() {
+  local language="$1"
+  local version
+  version="$(asdf list-all "$language" | grep -v "[a-z]" | tail -1)"
+
+  if ! asdf list "$language" | grep -Fq "$version"; then
+    asdf install "$language" "$version"
+    asdf global "$language" "$version"
+  fi
+}
+
+install_asdf_ruby() {
+  # shellcheck disable=SC1090
+  . "$(brew --prefix asdf)/asdf.sh"
+  add_or_update_asdf_plugin "ruby" "https://github.com/asdf-vm/asdf-ruby.git"
+
+  fancy_echo "Installing latest Ruby ..."
+  install_asdf_language "ruby"
+  gem update --system
+  number_of_cores=$(sysctl -n hw.ncpu)
+  bundle config --global jobs $((number_of_cores - 1))
+}
+
+install_asdf_nodejs() {
+  # shellcheck disable=SC1090
+  . "$(brew --prefix asdf)/asdf.sh"
+  add_or_update_asdf_plugin "nodejs" "https://github.com/asdf-vm/asdf-nodejs.git"
+
+  fancy_echo "Installing latest Node ..."
+  install_asdf_language "nodejs"
 }
 
 setup_postgres() {
@@ -260,7 +263,6 @@ append_web_dependencies() {
 
     # Languages
     brew "go"
-    brew "elixir"
 
     # Devops
     cask "docker"
@@ -311,9 +313,7 @@ install_dependencies() {
   fancy_echo "Installing dependencies"
   brew bundle --global --verbose --no-upgrade
 
-  install_rvm
-  install_nvm
-  setup_postgres
+  #setup_postgres
 
   fancy_echo "Installed dependencies"
 }
@@ -349,6 +349,12 @@ install() {
   fi
 
   install_dependencies
+
+  if [[ $web_dep =~ (y|yes|Y) ]];then
+    install_asdf
+    install_asdf_ruby
+    install_asdf_nodejs
+  fi
 
   install_laptop_local
 
