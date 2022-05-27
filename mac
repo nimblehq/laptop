@@ -191,6 +191,24 @@ install_asdf_nodejs() {
   install_asdf_language "nodejs"
 }
 
+install_asdf_erlang() {
+  # shellcheck disable=SC1090
+  . "$(brew --prefix asdf)/asdf.sh"
+  add_or_update_asdf_plugin "erlang" "https://github.com/asdf-vm/asdf-erlang.git"
+
+  fancy_echo "Installing latest Erlang ..."
+  install_asdf_language "erlang"
+}
+
+install_asdf_elixir() {
+  # shellcheck disable=SC1090
+  . "$(brew --prefix asdf)/asdf.sh"
+  add_or_update_asdf_plugin "elixir" "https://github.com/asdf-vm/asdf-elixir.git"
+
+  fancy_echo "Installing latest Elixir ..."
+  install_asdf_language "elixir"
+}
+
 setup_postgres() {
   pg_ctl -D "$HOMEBREW_PREFIX/var/postgres" start
   "$HOMEBREW_PREFIX/opt/postgres/bin/createuser" -s postgres
@@ -354,6 +372,8 @@ install() {
     install_asdf
     install_asdf_ruby
     install_asdf_nodejs
+    install_asdf_erlang
+    install_asdf_elixir
   fi
 
   install_laptop_local
