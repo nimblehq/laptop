@@ -144,6 +144,10 @@ install_asdf() {
   fancy_echo "Configuring asdf version manager ..."
   if [ ! -d "$HOME/.asdf" ]; then
     brew install asdf
+
+    # shellcheck disable=SC2016
+    append_to_zshrc 'export PATH=~/.asdf/shims:$PATH"'
+
     append_to_zshrc "source $(brew --prefix asdf)/asdf.sh" 1
   fi
 }
