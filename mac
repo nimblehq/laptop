@@ -161,8 +161,14 @@ add_or_update_asdf_plugin() {
 
 install_asdf_language() {
   local language="$1"
+  local regex_pattern="$2"
   local version
-  version="$(asdf list-all "$language" | grep -v "[a-z]" | tail -1)"
+
+  if [ -z "$regex_pattern" ]; then
+    regex_pattern="^\d+.\d+.?\d?$"
+  fi
+
+  version="$(asdf list-all "$language" | grep -E "$regex_pattern" | tail -1)"
 
   if ! asdf list "$language" | grep -Fq "$version"; then
     asdf install "$language" "$version"
@@ -206,7 +212,7 @@ install_asdf_elixir() {
   add_or_update_asdf_plugin "elixir" "https://github.com/asdf-vm/asdf-elixir.git"
 
   fancy_echo "Installing latest Elixir ..."
-  install_asdf_language "elixir"
+  install_asdf_language "elixir" "^\d+.\d+.?\d+?-otp-\d+$"
 }
 
 setup_postgres() {
