@@ -106,6 +106,9 @@ config_zsh() {
 
     zsh_config_homebrew
 
+    # shellcheck disable=SC2016
+    append_to_zshrc 'export PATH="$HOME/.asdf/shims:$PATH"'
+
     fancy_echo "Configured Zsh"
   fi
 }
@@ -146,9 +149,9 @@ install_asdf() {
     brew install asdf
 
     # shellcheck disable=SC2016
-    append_to_zshrc 'export PATH=~/.asdf/shims:$PATH"'
+    append_to_zshrc 'export PATH="$HOME/.asdf/shims:$PATH"'
 
-    append_to_zshrc "source $(brew --prefix asdf)/asdf.sh" 1
+    append_to_zshrc "source $(brew --prefix asdf)/libexec/asdf.sh" 1
   fi
 }
 
@@ -182,7 +185,7 @@ install_asdf_language() {
 
 install_asdf_ruby() {
   # shellcheck disable=SC1090
-  . "$(brew --prefix asdf)/asdf.sh"
+  . "$(brew --prefix asdf)/libexec/asdf.sh"
   add_or_update_asdf_plugin "ruby" "https://github.com/asdf-vm/asdf-ruby.git"
 
   fancy_echo "Installing latest Ruby ..."
@@ -194,7 +197,7 @@ install_asdf_ruby() {
 
 install_asdf_nodejs() {
   # shellcheck disable=SC1090
-  . "$(brew --prefix asdf)/asdf.sh"
+  . "$(brew --prefix asdf)/libexec/asdf.sh"
   add_or_update_asdf_plugin "nodejs" "https://github.com/asdf-vm/asdf-nodejs.git"
 
   fancy_echo "Installing latest Node ..."
@@ -203,7 +206,7 @@ install_asdf_nodejs() {
 
 install_asdf_erlang() {
   # shellcheck disable=SC1090
-  . "$(brew --prefix asdf)/asdf.sh"
+  . "$(brew --prefix asdf)/libexec/asdf.sh"
   add_or_update_asdf_plugin "erlang" "https://github.com/asdf-vm/asdf-erlang.git"
 
   fancy_echo "Installing latest Erlang ..."
@@ -212,7 +215,7 @@ install_asdf_erlang() {
 
 install_asdf_elixir() {
   # shellcheck disable=SC1090
-  . "$(brew --prefix asdf)/asdf.sh"
+  . "$(brew --prefix asdf)/libexec/asdf.sh"
   add_or_update_asdf_plugin "elixir" "https://github.com/asdf-vm/asdf-elixir.git"
 
   fancy_echo "Installing latest Elixir ..."
@@ -220,9 +223,9 @@ install_asdf_elixir() {
 }
 
 setup_postgres() {
-  pg_ctl -D "$HOMEBREW_PREFIX/var/postgres" start
-  "$HOMEBREW_PREFIX/opt/postgres/bin/createuser" -s postgres
-  pg_ctl -D "$HOMEBREW_PREFIX/var/postgres" stop
+  pg_ctl -D "$HOMEBREW_PREFIX/var/postgresql@14" start
+  "$HOMEBREW_PREFIX/opt/postgresql@14/bin/createuser" -s postgres
+  pg_ctl -D "$HOMEBREW_PREFIX/var/postgresql@14" stop
 }
 
 append_general_dependencies() {
@@ -301,7 +304,7 @@ append_web_dependencies() {
     brew "imagemagick"
 
     # Databases
-    brew "postgres"
+    brew "postgresql@14" unless File.directory?("/Applications/Postgres.app")
 
     # Others
     brew "yarn"
@@ -341,7 +344,11 @@ install_dependencies() {
   fancy_echo "Installing dependencies"
   brew bundle --global --verbose --no-upgrade
 
-  setup_postgres
+  if [[ "$(which postgres)" =~ "postgres not found" ]] && [[ ! -d "/Applications/Postgres.app" ]]; then
+    setup_postgres
+  else
+    fancy_echo "postgres already installed, skipping setup"
+  fi
 
   fancy_echo "Installed dependencies"
 }
