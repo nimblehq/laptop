@@ -107,7 +107,7 @@ config_zsh() {
     zsh_config_homebrew
 
     # shellcheck disable=SC2016
-    append_to_zshrc 'export PATH="$HOME/.asdf/shims:$PATH"'
+    append_to_zshrc 'export PATH=~/.asdf/shims:$PATH'
 
     fancy_echo "Configured Zsh"
   fi
@@ -149,7 +149,7 @@ install_asdf() {
     brew install asdf
 
     # shellcheck disable=SC2016
-    append_to_zshrc 'export PATH="$HOME/.asdf/shims:$PATH"'
+    append_to_zshrc 'export PATH=~/.asdf/shims:$PATH'
 
     append_to_zshrc "source $(brew --prefix asdf)/libexec/asdf.sh" 1
   fi
@@ -304,7 +304,7 @@ append_web_dependencies() {
     brew "imagemagick"
 
     # Databases
-    brew "postgresql@14" unless File.directory?("/Applications/Postgres.app")
+    brew "postgresql@14"
 
     # Others
     brew "yarn"
@@ -344,7 +344,7 @@ install_dependencies() {
   fancy_echo "Installing dependencies"
   brew bundle --global --verbose --no-upgrade
 
-  if [[ "$(which postgres)" =~ "postgres not found" ]] && [[ ! -d "/Applications/Postgres.app" ]]; then
+  if [[ "$(which postgres)" =~ "postgres not found" ]]; then
     setup_postgres
   else
     fancy_echo "postgres already installed, skipping setup"
