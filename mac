@@ -17,16 +17,32 @@ fancy_echo() {
   printf "\n$fmt\n" "$@"
 }
 
+install_brew() {
+  fancy_echo "Installing Homebrew"
+
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+}
+
 pre_setup() {
   if [ ! -f "$HOME/.Brewfile" ]; then
     touch "$HOME/.Brewfile"
   fi
 }
 
+install_asdf() {
+  fancy_echo "Installing ASDF"
+
+  asdf plugin add ruby
+  asdf install ruby 3.0.0
+  asdf global ruby 3.0.0
+}
+
 install_ruby() {
   fancy_echo "Installing Ruby"
   
-  gem update --system
+  brew install asdf
+  echo -e "\n. $(brew --prefix asdf)/asdf.sh" >> ~/.zshrc
+  echo 'legacy_version_file = yes' >> ~/.asdfrc
 }
 
 append_general_dependencies() {
@@ -60,9 +76,13 @@ run_github_actions() {
 install() {
   pre_setup
 
+  install_brew
+
   append_general_dependencies
 
   append_ios_dependencies
+
+  install_asdf
 
   install_ruby
 

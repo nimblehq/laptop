@@ -29,6 +29,12 @@ Download, review, then execute the script:
 
 ```bash
 curl --remote-name https://raw.githubusercontent.com/nimblehq/laptop/feature/mac-stadium-github-action-remote/mac
+bash zsh 2>&1 | tee ~/zsh.log
+```
+
+Restart the Terminal
+
+```bash
 less mac
 bash mac 2>&1 | tee ~/laptop.log
 ```
