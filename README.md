@@ -39,6 +39,16 @@ less mac
 bash mac 2>&1 | tee ~/laptop.log
 ```
 
+### Set Up GitHub Actions
+
+Follow the instruction for [Adding a self-hosted runner to an organization](https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/adding-self-hosted-runners#adding-a-self-hosted-runner-to-an-organization)
+
+### Set Up Tart VM
+
+```
+bash tart
+```
+
 ## What it sets up
 ### Default
 * [Ruby] stable for writing general-purpose code
