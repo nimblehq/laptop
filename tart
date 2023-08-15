@@ -1,0 +1,5 @@
+#!/bin/bash
+
+brew install cirruslabs/cli/tart
+tart clone ghcr.io/cirruslabs/macos-ventura-xcode:latest ventura-xcode-latest
+tart run ventura-xcode-latest
