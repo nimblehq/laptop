@@ -177,10 +177,14 @@ install_asdf_language() {
 
   version="$(asdf list-all "$language" | grep -E "$regex_pattern" | tail -1)"
 
+  fancy_echo "install_asdf_language installing language: $language, version: $version"
+
   if ! asdf list "$language" | grep -Fq "$version"; then
     asdf install "$language" "$version"
     asdf global "$language" "$version"
   fi
+
+  fancy_echo "DONE install_asdf_language for $language - $version"
 }
 
 install_asdf_ruby() {
@@ -228,7 +232,7 @@ install_asdf_golang() {
   add_or_update_asdf_plugin "golang" "https://github.com/asdf-community/asdf-golang.git"
 
   fancy_echo "Installing latest Go ..."
-  install_asdf_language "golang" "^\d+.\d+.?\d+?-otp-\d+$"
+  install_asdf_language "golang" "^\d+.\d+.?\d+?\d+$"
 }
 
 append_general_dependencies() {
@@ -247,14 +251,15 @@ append_general_dependencies() {
     # General apps
     cask "slack" unless File.directory?("/Applications/Slack.app")
     cask "google-chrome" unless File.directory?("/Applications/Google Chrome.app")
-    cask "1password" unless File.directory?("/Applications/1Password 7.app")
+    # cask "1password" unless File.directory?("/Applications/1Password 7.app")
+    cask "1password" unless File.directory?("/Applications/1Password.app")
     cask "1password-cli"
-    cask "skitch" unless File.directory?("/Applications/Skitch.app")
+    # cask "skitch" unless File.directory?("/Applications/Skitch.app")
     cask "postman" unless File.directory?("/Applications/Postman.app")
     cask "iterm2" unless File.directory?("/Applications/iTerm.app")
 
     # Unix
-    brew "universal-ctags", args: ["HEAD"]
+    # brew "universal-ctags", args: ["HEAD"]
     brew "git"
     brew "openssl"
     brew "gpg"
@@ -386,6 +391,8 @@ install() {
     install_asdf_erlang
     install_asdf_elixir
     install_asdf_golang
+
+    fancy_echo "Finished installing asdf languages for Web development"
   fi
 
   install_laptop_local
