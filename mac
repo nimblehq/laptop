@@ -322,7 +322,7 @@ append_ios_dependencies() {
     cask "figma"
     cask "proxyman"
     cask "sourcetree"
-    mas "XCode", id: 497799835
+    cask "xcodes"
 EOF
 }
 

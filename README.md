@@ -142,12 +142,14 @@ Plugins for asdf:
 - [Proxyman] enables developers to observe and manipulate HTTP/HTTPS requests
 - [Atlassian SourceTree] a free Git client for Mac
 - [XCode] iOS IDE
+- [Xcodes] a GUI app that helps you manage multiple versions of Xcode
 
 [cocoapods]: https://cocoapods.org/
 [figma]: https://www.figma.com/
 [proxyman]: https://proxyman.io/
 [atlassian sourcetree]: https://www.sourcetreeapp.com/
 [xcode]: https://developer.apple.com/xcode/
+[xcodes]: https://github.com/XcodesOrg/XcodesApp
 
 ### Android
 
