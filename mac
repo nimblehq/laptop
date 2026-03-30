@@ -251,6 +251,39 @@ install_asdf_golang() {
   install_asdf_language "golang" "^\d+\.\d+(\.\d+)?$"
 }
 
+install_container_manager() {
+  echo "Select a container tool:"
+  echo "  1) Docker Desktop"
+  echo "  2) Rancher Desktop"
+  echo "  3) Skip"
+  read -r -p "Enter your choice [1|2|3] " container_tool
+  if [[ $container_tool == "1" ]]; then
+    if [ -d "/Applications/Rancher Desktop.app" ]; then
+      fancy_echo "Rancher Desktop is installed. Please uninstall it first before installing Docker Desktop."
+    else
+      brew install --cask docker
+    fi
+  elif [[ $container_tool == "2" ]]; then
+    if [ -d "/Applications/Docker.app" ]; then
+      fancy_echo "Docker Desktop is installed. Please uninstall it first before installing Rancher Desktop."
+    else
+      brew install --cask rancher
+    fi
+  fi
+}
+
+install_node_manager() {
+  echo "Select a Node.js version manager:"
+  echo "  1) asdf (nodejs plugin)"
+  echo "  2) nvm"
+  read -r -p "Enter your choice [1|2] " node_manager
+  if [[ $node_manager == "2" ]]; then
+    install_nvm_nodejs
+  else
+    install_asdf_nodejs
+  fi
+}
+
 append_general_dependencies() {
   fancy_echo "Appending general dependencies to Brewfile"
 
@@ -375,7 +408,6 @@ install_laptop_local() {
 
 install() {
   read -r -p "Do you want to install Web's dependencies? [y|N] " web_dep
-
   read -r -p "Do you want to install iOS's dependencies? [y|N] " ios_dep
   read -r -p "Do you want to install Android's dependencies? [y|N] " android_dep
 
@@ -399,36 +431,11 @@ install() {
   install_dependencies
 
   if [[ $web_dep =~ (y|yes|Y) ]];then
-    echo "Select a container tool:"
-    echo "  1) Docker Desktop"
-    echo "  2) Rancher Desktop"
-    echo "  3) Skip"
-    read -r -p "Enter your choice [1|2|3] " container_tool
-    if [[ $container_tool == "1" ]]; then
-      if [ -d "/Applications/Rancher Desktop.app" ]; then
-        fancy_echo "Rancher Desktop is installed. Please uninstall it first before installing Docker Desktop."
-      else
-        brew install --cask docker
-      fi
-    elif [[ $container_tool == "2" ]]; then
-      if [ -d "/Applications/Docker.app" ]; then
-        fancy_echo "Docker Desktop is installed. Please uninstall it first before installing Rancher Desktop."
-      else
-        brew install --cask rancher
-      fi
-    fi
+    install_container_manager
 
     install_asdf
     install_asdf_ruby
-    echo "Select a Node.js version manager:"
-    echo "  1) asdf (nodejs plugin)"
-    echo "  2) nvm"
-    read -r -p "Enter your choice [1|2] " node_manager
-    if [[ $node_manager == "2" ]]; then
-      install_nvm_nodejs
-    else
-      install_asdf_nodejs
-    fi
+    install_node_manager
     install_asdf_erlang
     install_asdf_elixir
     install_asdf_golang
