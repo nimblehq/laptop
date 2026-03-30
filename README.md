@@ -37,15 +37,9 @@ Do you want to install iOS's dependencies? [y|N]
 Do you want to install Android's dependencies? [y|N]
 ```
 
-When installing Web dependencies, additional prompts will appear:
+When installing Web dependencies, an additional prompt will appear:
 
 ```text
-Select a container tool:
-  1) Docker Desktop
-  2) Rancher Desktop
-  3) Skip
-Enter your choice [1|2|3]
-
 Select a Node.js version manager:
   1) asdf (nodejs plugin)
   2) nvm
@@ -116,13 +110,12 @@ Utilities:
 
 Tools:
 
-- [Docker Desktop] or [Rancher Desktop] for container management (user selects during install)
+- [Docker] for managing project dependencies
 - [ImageMagick] for cropping and resizing images
 - [Yarn] JavaScript package manager
 - [JetBrains Toolbox] for managing JetBrains tools the easy way
 
-[docker desktop]: https://www.docker.com/products/docker-desktop/
-[rancher desktop]: https://rancherdesktop.io/
+[docker]: https://www.docker.com/community-edition
 [imagemagick]: https://www.imagemagick.org/
 [yarn]: https://yarnpkg.com/
 [jetbrains toolbox]: https://www.jetbrains.com/toolbox-app/

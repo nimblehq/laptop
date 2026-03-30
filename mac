@@ -251,27 +251,6 @@ install_asdf_golang() {
   install_asdf_language "golang" "^\d+\.\d+(\.\d+)?$"
 }
 
-install_container_manager() {
-  echo "Select a container tool:"
-  echo "  1) Docker Desktop"
-  echo "  2) Rancher Desktop"
-  echo "  3) Skip"
-  read -r -p "Enter your choice [1|2|3] " container_tool
-  if [[ $container_tool == "1" ]]; then
-    if [ -d "/Applications/Rancher Desktop.app" ]; then
-      fancy_echo "Rancher Desktop is installed. Please uninstall it first before installing Docker Desktop."
-    else
-      brew install --cask docker
-    fi
-  elif [[ $container_tool == "2" ]]; then
-    if [ -d "/Applications/Docker.app" ]; then
-      fancy_echo "Docker Desktop is installed. Please uninstall it first before installing Rancher Desktop."
-    else
-      brew install --cask rancher
-    fi
-  fi
-}
-
 install_node_manager() {
   echo "Select a Node.js version manager:"
   echo "  1) asdf (nodejs plugin)"
@@ -348,6 +327,7 @@ append_web_dependencies() {
     tap "phrase/brewed"
 
     # Devops
+    cask "docker"
     brew "heroku"
     brew "awscli"
 
@@ -431,8 +411,6 @@ install() {
   install_dependencies
 
   if [[ $web_dep =~ (y|yes|Y) ]];then
-    install_container_manager
-
     install_asdf
     install_asdf_ruby
     install_node_manager
