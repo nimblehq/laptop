@@ -79,8 +79,10 @@ config_zsh() {
   if [[ ! $response =~ (n|no|N) ]];then
     sudo chsh -s $(which zsh)
 
-    fancy_echo "Installing Oh my Zsh"
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" "" --unattended
+    if [ ! -d ~/.oh-my-zsh ]; then
+      fancy_echo "Installing Oh my Zsh"
+      sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" "" --unattended
+    fi
 
     if [ ! -d ~/.zsh/zsh-defer ]; then
       git clone https://github.com/romkatv/zsh-defer.git ~/.zsh/zsh-defer
@@ -159,10 +161,10 @@ add_or_update_asdf_plugin() {
   local name="$1"
   local url="$2"
 
-  if ! asdf plugin-list | grep -Fq "$name"; then
-    asdf plugin-add "$name" "$url"
+  if ! asdf plugin list | grep -Fq "$name"; then
+    asdf plugin add "$name" "$url"
   else
-    asdf plugin-update "$name"
+    asdf plugin update "$name"
   fi
 }
 
@@ -172,15 +174,15 @@ install_asdf_language() {
   local version
 
   if [ -z "$regex_pattern" ]; then
-    regex_pattern="^\d+.\d+.?\d?$"
+    regex_pattern="^\d+\.\d+(\.\d+)?$"
   fi
 
-  version="$(asdf list-all "$language" | grep -E "$regex_pattern" | tail -1)"
+  version="$(asdf list all "$language" | grep -E "$regex_pattern" | tail -1)"
 
   if ! asdf list "$language" | grep -Fq "$version"; then
     asdf install "$language" "$version"
-    asdf global "$language" "$version"
   fi
+  asdf set --home "$language" "$version"
 }
 
 install_asdf_ruby() {
@@ -202,6 +204,24 @@ install_asdf_nodejs() {
 
   fancy_echo "Installing latest Node ..."
   install_asdf_language "nodejs"
+}
+
+install_nvm_nodejs() {
+  fancy_echo "Installing nvm ..."
+  brew install nvm
+
+  export NVM_DIR="$HOME/.nvm"
+  mkdir -p "$NVM_DIR"
+
+  # shellcheck disable=SC1091
+  . "$(brew --prefix nvm)/nvm.sh"
+
+  fancy_echo "Installing latest Node via nvm ..."
+  nvm install --lts
+  nvm alias default lts/*
+
+  append_to_zshrc 'export NVM_DIR="$HOME/.nvm"'
+  append_to_zshrc '[ -s "$(brew --prefix nvm)/nvm.sh" ] && \. "$(brew --prefix nvm)/nvm.sh"'
 }
 
 install_asdf_erlang() {
@@ -228,7 +248,7 @@ install_asdf_golang() {
   add_or_update_asdf_plugin "golang" "https://github.com/asdf-community/asdf-golang.git"
 
   fancy_echo "Installing latest Go ..."
-  install_asdf_language "golang" "^\d+.\d+.?\d+?-otp-\d+$"
+  install_asdf_language "golang" "^\d+\.\d+(\.\d+)?$"
 }
 
 append_general_dependencies() {
@@ -237,7 +257,6 @@ append_general_dependencies() {
   tee "$HOME/.Brewfile" <<-EOF
     # General
     tap "thoughtbot/formulae"
-    tap "homebrew/services"
     tap "universal-ctags/universal-ctags"
     tap "github/gh"
 
@@ -296,7 +315,6 @@ append_web_dependencies() {
     tap "phrase/brewed"
 
     # Devops
-    cask "docker"
     brew "heroku"
     brew "awscli"
 
@@ -357,6 +375,7 @@ install_laptop_local() {
 
 install() {
   read -r -p "Do you want to install Web's dependencies? [y|N] " web_dep
+
   read -r -p "Do you want to install iOS's dependencies? [y|N] " ios_dep
   read -r -p "Do you want to install Android's dependencies? [y|N] " android_dep
 
@@ -380,9 +399,36 @@ install() {
   install_dependencies
 
   if [[ $web_dep =~ (y|yes|Y) ]];then
+    echo "Select a container tool:"
+    echo "  1) Docker Desktop"
+    echo "  2) Rancher Desktop"
+    echo "  3) Skip"
+    read -r -p "Enter your choice [1|2|3] " container_tool
+    if [[ $container_tool == "1" ]]; then
+      if [ -d "/Applications/Rancher Desktop.app" ]; then
+        fancy_echo "Rancher Desktop is installed. Please uninstall it first before installing Docker Desktop."
+      else
+        brew install --cask docker
+      fi
+    elif [[ $container_tool == "2" ]]; then
+      if [ -d "/Applications/Docker.app" ]; then
+        fancy_echo "Docker Desktop is installed. Please uninstall it first before installing Rancher Desktop."
+      else
+        brew install --cask rancher
+      fi
+    fi
+
     install_asdf
     install_asdf_ruby
-    install_asdf_nodejs
+    echo "Select a Node.js version manager:"
+    echo "  1) asdf (nodejs plugin)"
+    echo "  2) nvm"
+    read -r -p "Enter your choice [1|2] " node_manager
+    if [[ $node_manager == "2" ]]; then
+      install_nvm_nodejs
+    else
+      install_asdf_nodejs
+    fi
     install_asdf_erlang
     install_asdf_elixir
     install_asdf_golang
