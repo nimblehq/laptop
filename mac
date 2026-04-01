@@ -79,8 +79,10 @@ config_zsh() {
   if [[ ! $response =~ (n|no|N) ]];then
     sudo chsh -s $(which zsh)
 
-    fancy_echo "Installing Oh my Zsh"
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" "" --unattended
+    if [ ! -d ~/.oh-my-zsh ]; then
+      fancy_echo "Installing Oh my Zsh"
+      sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" "" --unattended
+    fi
 
     if [ ! -d ~/.zsh/zsh-defer ]; then
       git clone https://github.com/romkatv/zsh-defer.git ~/.zsh/zsh-defer
@@ -159,10 +161,10 @@ add_or_update_asdf_plugin() {
   local name="$1"
   local url="$2"
 
-  if ! asdf plugin-list | grep -Fq "$name"; then
-    asdf plugin-add "$name" "$url"
+  if ! asdf plugin list | grep -Fq "$name"; then
+    asdf plugin add "$name" "$url"
   else
-    asdf plugin-update "$name"
+    asdf plugin update "$name"
   fi
 }
 
@@ -172,15 +174,15 @@ install_asdf_language() {
   local version
 
   if [ -z "$regex_pattern" ]; then
-    regex_pattern="^\d+.\d+.?\d?$"
+    regex_pattern="^\d+\.\d+(\.\d+)?$"
   fi
 
-  version="$(asdf list-all "$language" | grep -E "$regex_pattern" | tail -1)"
+  version="$(asdf list all "$language" | grep -E "$regex_pattern" | tail -1)"
 
   if ! asdf list "$language" | grep -Fq "$version"; then
     asdf install "$language" "$version"
-    asdf global "$language" "$version"
   fi
+  asdf set --home "$language" "$version"
 }
 
 install_asdf_ruby() {
@@ -202,6 +204,24 @@ install_asdf_nodejs() {
 
   fancy_echo "Installing latest Node ..."
   install_asdf_language "nodejs"
+}
+
+install_nvm_nodejs() {
+  fancy_echo "Installing nvm ..."
+  brew install nvm
+
+  export NVM_DIR="$HOME/.nvm"
+  mkdir -p "$NVM_DIR"
+
+  # shellcheck disable=SC1091
+  . "$(brew --prefix nvm)/nvm.sh"
+
+  fancy_echo "Installing latest Node via nvm ..."
+  nvm install --lts
+  nvm alias default lts/*
+
+  append_to_zshrc 'export NVM_DIR="$HOME/.nvm"'
+  append_to_zshrc '[ -s "$(brew --prefix nvm)/nvm.sh" ] && \. "$(brew --prefix nvm)/nvm.sh"'
 }
 
 install_asdf_erlang() {
@@ -228,7 +248,19 @@ install_asdf_golang() {
   add_or_update_asdf_plugin "golang" "https://github.com/asdf-community/asdf-golang.git"
 
   fancy_echo "Installing latest Go ..."
-  install_asdf_language "golang" "^\d+.\d+.?\d+?-otp-\d+$"
+  install_asdf_language "golang" "^\d+\.\d+(\.\d+)?$"
+}
+
+install_node_manager() {
+  echo "Select a Node.js version manager:"
+  echo "  1) asdf (nodejs plugin)"
+  echo "  2) nvm"
+  read -r -p "Enter your choice [1|2] " node_manager
+  if [[ $node_manager == "2" ]]; then
+    install_nvm_nodejs
+  else
+    install_asdf_nodejs
+  fi
 }
 
 append_general_dependencies() {
@@ -237,7 +269,6 @@ append_general_dependencies() {
   tee "$HOME/.Brewfile" <<-EOF
     # General
     tap "thoughtbot/formulae"
-    tap "homebrew/services"
     tap "universal-ctags/universal-ctags"
     tap "github/gh"
 
@@ -249,7 +280,7 @@ append_general_dependencies() {
     cask "google-chrome" unless File.directory?("/Applications/Google Chrome.app")
     cask "1password" unless File.directory?("/Applications/1Password 7.app")
     cask "1password-cli"
-    cask "skitch" unless File.directory?("/Applications/Skitch.app")
+
     cask "postman" unless File.directory?("/Applications/Postman.app")
     cask "iterm2" unless File.directory?("/Applications/iTerm.app")
 
@@ -333,7 +364,7 @@ append_android_dependencies() {
     # Android
     cask "temurin"
     cask "android-studio"
-    cask "android-sdk"
+    cask "android-commandlinetools"
 EOF
 }
 
@@ -382,7 +413,7 @@ install() {
   if [[ $web_dep =~ (y|yes|Y) ]];then
     install_asdf
     install_asdf_ruby
-    install_asdf_nodejs
+    install_node_manager
     install_asdf_erlang
     install_asdf_elixir
     install_asdf_golang

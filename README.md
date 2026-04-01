@@ -37,6 +37,15 @@ Do you want to install iOS's dependencies? [y|N]
 Do you want to install Android's dependencies? [y|N]
 ```
 
+When installing Web dependencies, an additional prompt will appear:
+
+```text
+Select a Node.js version manager:
+  1) asdf (nodejs plugin)
+  2) nvm
+Enter your choice [1|2]
+```
+
 ## What it sets up
 
 ### Default
@@ -47,7 +56,6 @@ Applications:
 - [Google Chrome] as the default browser
 - [Keybase] to have encrypted team communication
 - [Postman] a collaboration platform for API development
-- [Skitch] get your point across with fewer words using annotation, shapes and sketches
 - [Slack] for general team communication
 - [VS Code] code editor
 
@@ -55,7 +63,6 @@ Applications:
 [google chrome]: https://www.google.com/chrome/
 [keybase]: https://keybase.io/
 [postman]: https://www.postman.com/
-[skitch]: https://evernote.com/products/skitch
 [slack]: https://www.slack.com/
 [vs code]: https://code.visualstudio.com/
 
@@ -123,6 +130,13 @@ Command Line Interfaces:
 [aws cli]: https://aws.amazon.com/cli/
 [phrase cli]: https://phrase.com/cli/
 
+Node.js version manager (user selects during install):
+
+- [asdf] nodejs plugin
+- [nvm] Node Version Manager
+
+[nvm]: https://github.com/nvm-sh/nvm
+
 Plugins for asdf:
 
 - [Elixir] functional metaprogramming aware language built on Erlang VM
@@ -155,11 +169,11 @@ Plugins for asdf:
 
 - [Temurin] OpenJDK from the Adoptium
 - [Android Studio] Android IDE
-- [Android SDK] Software Development Kit for Android
+- [Android Command Line Tools] Command-line tools for Android development
 
 [temurin]: https://adoptium.net
 [android studio]: https://developer.android.com/studio/index.html
-[android sdk]: https://developer.android.com/studio/releases/sdk-tools
+[android command line tools]: https://developer.android.com/studio/command-line
 
 It should take less than 15 minutes to install (depending on your machine and internet speed).
 
