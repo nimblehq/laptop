@@ -353,7 +353,7 @@ append_ios_dependencies() {
     cask "figma"
     cask "proxyman"
     cask "sourcetree"
-    cask "xcodes"
+    cask "xcodes-app"
 EOF
 }
 
@@ -365,6 +365,16 @@ append_android_dependencies() {
     cask "temurin"
     cask "android-studio"
     cask "android-commandlinetools"
+EOF
+}
+
+append_flutter_dependencies() {
+  fancy_echo "Appending Flutter's dependencies to Brewfile"
+
+  tee -a "$HOME/.Brewfile" <<-EOF
+    # Flutter
+    cask "flutter"
+    brew "cocoapods"
 EOF
 }
 
@@ -386,10 +396,43 @@ install_laptop_local() {
   fi
 }
 
+print_ios_setup_notes() {
+  cat <<'EOF'
+
+Apple mobile setup installed helper tools and Xcodes.
+Install Xcode separately with the App Store or Xcodes, then run:
+
+  sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+  sudo xcodebuild -license accept
+  sudo xcodebuild -runFirstLaunch
+
+Download the platform support and Simulator runtimes you need in
+Xcode > Settings > Components or with:
+
+  xcodebuild -downloadPlatform iOS
+EOF
+}
+
+print_flutter_setup_notes() {
+  cat <<'EOF'
+
+Flutter setup installed the Flutter SDK and CocoaPods.
+Validate the toolchain with:
+
+  flutter doctor -v
+
+If you also installed the Android option, accept the Android SDK
+licenses once with:
+
+  flutter doctor --android-licenses
+EOF
+}
+
 install() {
   read -r -p "Do you want to install Web's dependencies? [y|N] " web_dep
   read -r -p "Do you want to install iOS's dependencies? [y|N] " ios_dep
   read -r -p "Do you want to install Android's dependencies? [y|N] " android_dep
+  read -r -p "Do you want to install Flutter's dependencies? [y|N] " flutter_dep
 
   pre_setup
   install_homebrew
@@ -408,6 +451,10 @@ install() {
     append_android_dependencies
   fi
 
+  if [[ $flutter_dep =~ (y|yes|Y) ]];then
+    append_flutter_dependencies
+  fi
+
   install_dependencies
 
   if [[ $web_dep =~ (y|yes|Y) ]];then
@@ -422,6 +469,14 @@ install() {
   install_laptop_local
 
   brew cleanup
+
+  if [[ $ios_dep =~ (y|yes|Y) ]];then
+    print_ios_setup_notes
+  fi
+
+  if [[ $flutter_dep =~ (y|yes|Y) ]];then
+    print_flutter_setup_notes
+  fi
 }
 
 # Run
