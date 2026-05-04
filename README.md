@@ -4,7 +4,7 @@
 
 ---
 
-Laptop is a script to set up a macOS environment for web development.
+Laptop is a script to set up a macOS environment for software development.
 
 The script is idempotent: It can run multiple times on the same machine safely.
 It installs, upgrades, or skips packages
@@ -35,6 +35,7 @@ Choose the additional packages when the prompts appear:
 Do you want to install Web's dependencies? [y|N]
 Do you want to install iOS's dependencies? [y|N]
 Do you want to install Android's dependencies? [y|N]
+Do you want to install Flutter's dependencies? [y|N]
 ```
 
 When installing Web dependencies, an additional prompt will appear:
@@ -155,15 +156,22 @@ Plugins for asdf:
 - [Figma] helps teams create, test, and ship better designs from start to finish
 - [Proxyman] enables developers to observe and manipulate HTTP/HTTPS requests
 - [Atlassian SourceTree] a free Git client for Mac
-- [XCode] iOS IDE
-- [Xcodes] a GUI app that helps you manage multiple versions of Xcode
+- [Xcodes] a GUI app that helps you install and manage multiple versions of Xcode
 
 [cocoapods]: https://cocoapods.org/
 [figma]: https://www.figma.com/
 [proxyman]: https://proxyman.io/
 [atlassian sourcetree]: https://www.sourcetreeapp.com/
-[xcode]: https://developer.apple.com/xcode/
 [xcodes]: https://github.com/XcodesOrg/XcodesApp
+
+> [!NOTE]
+> The iOS option installs helper tools and Xcodes. Install Xcode separately
+> with the App Store or Xcodes, then run
+> `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`,
+> `sudo xcodebuild -license accept`,
+> and `sudo xcodebuild -runFirstLaunch`.
+> Download the platform support and Simulator runtimes you need in
+> `Xcode > Settings > Components` or with `xcodebuild -downloadPlatform iOS`.
 
 ### Android
 
@@ -175,13 +183,27 @@ Plugins for asdf:
 [android studio]: https://developer.android.com/studio/index.html
 [android command line tools]: https://developer.android.com/studio/command-line
 
+### Flutter
+
+- [Flutter SDK] the SDK for building apps across mobile, web, and desktop
+- [Cocoapods] a dependency manager required for Flutter iOS builds
+
+[flutter sdk]: https://flutter.dev/
+
+> [!NOTE]
+> The Flutter option installs the Flutter SDK and CocoaPods. Pair it with
+> the iOS option and/or Android option depending on the platforms you want
+> to target, then run `flutter doctor -v` to validate the machine. If you
+> selected Android, also run `flutter doctor --android-licenses` once to
+> accept the Android SDK licenses.
+
 It should take less than 15 minutes to install (depending on your machine and internet speed).
 
-### M1 incompatible dependecies
+### Apple Silicon incompatible dependencies
 
 - [Keybase] to have encrypted team communication
 
-It will omit all these dependencies above while running the script in the M1 machines.
+These dependencies are skipped when the script runs on Apple Silicon (arm64) machines.
 
 ## Customize in `~/.laptop.local`
 
